@@ -5,5 +5,5 @@ from the lung disease byssinosis, together with the values of five cross-classif
 the race, sex and smoking habit of the worker, the length of employment in three categories, and the dustiness of the 
 workplace in three categories.
 
-I will investigate the relationships between the disease and the explanatory variables by using diagnostics and model
+I will investigate the relationships between Byssinosis and the explanatory variables by using diagnostics and model
 selection.
