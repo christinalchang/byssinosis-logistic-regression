@@ -1,30 +1,53 @@
 ---
 title: "Logistic Regression on Byssinosis Data"
-author: "Christina Chang"
+author: "Christina Chang (ID:913970829)"
 date: "12/5/2019"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, include = TRUE)
 ```
 
-## R Markdown
+```{r}
+# Import libraries.
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+# Read the data.
+df = read.csv("byssinosis.csv")
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+This project will investigate the relationship between the Byssinosis disease and smoking status, sex, race, length of employment, smoking, and dustiness of the workplace.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
+#### Model fitting
+```{r}
+model = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ ., 
+            family = binomial(), data = df)
+summary(model)
+```
+##### Interpreting logistic regression results
+From the results of the model, sex and race are not statistically significant. As for the statistically significant variables, Workspace has the smallest p-value, therefore, there is a strong association between the type of work place and the disease. Since the coefficient for Workspace is negative, this means that an environment that is less dusty decreases the odds of having the disease, given that all other variables are held constant.
+
+```{r}
+# Consider interaction terms.
+model = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ (.)^2, 
+            family = binomial(), data = df)
+summary(model)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+#### Perform stepwise variable selection
+```{r}
+fullmodel = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ ., 
+            family = binomial(), data = df)
+nullmodel = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ 1, 
+            family = binomial(), data = df)
+```
+
+
+
+#### Appendix
+```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE,include =TRUE}
+```
