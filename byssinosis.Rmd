@@ -1,8 +1,10 @@
 ---
-title: "Logistic Regression on Byssinosis Data"
+title: "Modeling Byssinosis Data"
 author: "Christina Chang (ID:913970829)"
 date: "12/5/2019"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -19,9 +21,9 @@ library(car)
 df = read.csv("byssinosis.csv")
 ```
 
-This project will investigate the relationship between the Byssinosis disease and smoking status, sex, race, length of employment, smoking, and dustiness of the workplace.
+This project investigates the relationship between the Byssinosis disease and smoking status, sex, race, length of employment, smoking, and dustiness of the workplace.
 
-#### Logistic Regression
+#### Fit the Logistic Regression Model
 ```{r}
 # Model fitting
 model = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ ., 
@@ -29,7 +31,7 @@ model = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ .,
 summary(model)
 ```
 
-From the results of the logistic regression model with no interactions, sex and race are not statistically significant. As for the statistically significant variables, Workspace has the smallest p-value, therefore, there is a strong association between the type of work place and the disease. Since the coefficient for Workspace is negative, this means that a less dusty environment decreases the odds of having the disease, given that all other variables are held constant. More specifically, a one unit increase in the Workspace variable reduces the log odds by $-1.376$, or reduces the odds by $0.253$.
+From the results of the logistic regression model with no interactions, sex and race are not statistically significant. As for the statistically significant variables, workspace has the smallest p-value, therefore, there is a strong association between the type of work place and the disease. Since the coefficient for workspace is negative, this means that a less dusty environment decreases the odds of having the disease, given that all other variables are held constant. More specifically, a one unit increase in the workspace variable reduces the log odds by $-1.376$, or reduces the odds by $0.253$.
 
 ```{r, include = FALSE}
 # Consider interaction terms.
@@ -38,7 +40,7 @@ model = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ (.)^2,
 summary(model)
 ```
 
-Next, I introduced interactions into the model. I fitted the logistic regression model with all possible interactions. The interaction term between male and workspace had the smallest p-value of $0.0087$ and the coefficient was $-0.907$.
+I also introduced interactions into the model. I fitted the logistic regression model with all possible interactions. I found that the interaction term between male and workspace had the strongest association with the disease. The interaction term between male and workspace had the smallest p-value of $0.0087$ and the coefficient was $-0.907$.
 
 #### Model Selection
 ##### Perform stepwise variable selection
@@ -83,31 +85,66 @@ log \left( \frac{\pi}{1-\pi}\right) =
 0.6699 x_{\text{Employment>=20}} +
 0.5328 x_{\text{Employment10-19}}
 $$
+This suggests that being in a less dusty workspace decreases the log odds of having the disease. Smoking, employment between 10 and 19 years, and employment greater than or equal to 20 years all increase the log odds of having the disease. However, the type of workspace seems to have the largest effect on the odds of having the disease.
+
+Also, notice that model selection removed the terms for sex and race. This implies that these two variables are not very important for determining if a person has the disease. 
 
 ##### LR test for interactions
 ```{r}
 # LR test for interactions
-fitf = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ (.)^2, 
+fitf = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ 
+             (Employment + Smoking + Workspace)^2, 
             family = binomial(), data = df)
-fit0 = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ ., 
+fit0 = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ 
+             Employment + Smoking + Workspace, 
             family = binomial(), data = df)
 
 lrtest(fitf,fit0)
 ```
-I used the likelihood ratio test to test for interactions between all variables. I compared the model with all interactions to the model with only main effects. So the null hypothesis is that all the coefficients of the interaction terms equal zero. The alternative hypothesis is that at least one coefficient of the interaction terms is not zero.
+I used the likelihood ratio test to test for interactions between all variables. I compared the model with all interactions to the model with employment, smoking, and workspace. So, the null hypothesis is that all the coefficients of the interaction terms equal zero. The alternative hypothesis is that at least one coefficient of the interaction terms is not zero.
 
-The LR test statistic is $28.237$ and the p-value is $0.0132$. Hence, there is enough statistical evidence to accept the null hypothesis when $\alpha = 0.01$. This means that we should drop the interaction terms from the model.
+The LR test statistic is $8.0836$ and the p-value is $0.152$. Hence, there is not enough statistical evidence to reject the null hypothesis when $\alpha = 0.01$. We fail to reject the null hypothesis and leave out the interaction terms from the model.
 
 #### Model Diagnostics
+I performed model diagostics on the model that only includes the main effects of employment, smoking, and workspace. It does not include any interactions.
+
 ##### Pearson's residuals plot
-Below is a histogram of Pearson's residuals. All of the residuals are within $-3$ and $3$.
+Below is a histogram of Pearson's residuals. All of the residuals are within $-3$ and $3$. This suggests that the model fits the data fairly well.
+
 ```{r}
 # Pearson's residuals
 res = residuals(fit0, "pearson")
 hist(res, main = "Plot of Pearson's Residuals", xlab = "Residual")
 ```
 
-##### DFbeta plot
+##### DFbeta plots
+The following are index plots of DFbeta. These plots show the effect on coefficients after deleting an observation. Each point has a DFbeta. A large DFbeta indicates that the observation has a large influence on the parameter estimate.
+
+```{r}
+dfbetaPlots(fit0)
+```
+
+A data point is suspicious if the DFbeta is greater that 1. There are no DFbetas that are greater than 1 in the dataset. There are some points have a absolute DFbeta value around $0.1$ or $0.2$ in all plots.
+
+##### DFfits plot
+The following is a plot of DFfits. DFfits measures how the regression function changes when an observation is deleted. 
+```{r}
+# DFfits
+plot(dffits(fit0), main = "DFfits Plot")
+```
+
+There are four points that have DFfits magnitudes greater than 1:
+```{r}
+df[which(abs(dffits(fit0)) > 1),]
+```
+These observations have a high influence on the model.
+
+#### Conclusions
+From fitting the logistic regression model and exploring model selection and diagnostics, I found that workspace seems to have the most influence on having the Byssinosis disease. People who work in dustier environments have a higher odds of having the disease when compared to people who work in less dusty environments. Smoking, employment between 10 and 19 years, and employment greater than 20 years increases the odds of having the disease.
+
+After model selection, the variables for sex and race were removed, hence, they were not as important for determining if a person has the Byssinosis disease.
+
+The Pearson's residual plots showed that all residuals were within $-3$ and $3$, meaning that the model fits the data well. The DFbetas plot did not reveal any observations that have a particularly large influece on the coefficients. However, the DFfits plot showed that four observations have a large infuence on the regression function.
 
 #### Appendix
 ```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE,include =TRUE}
