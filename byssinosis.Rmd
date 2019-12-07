@@ -1,6 +1,6 @@
 ---
 title: "Modeling Byssinosis Data"
-author: "Christina Chang (ID:913970829)"
+author: "Christina Chang"
 date: "12/5/2019"
 output:
   html_document: default
@@ -121,6 +121,7 @@ hist(res, main = "Plot of Pearson's Residuals", xlab = "Residual")
 The following are index plots of DFbeta. These plots show the effect on coefficients after deleting an observation. Each point has a DFbeta. A large DFbeta indicates that the observation has a large influence on the parameter estimate.
 
 ```{r}
+# DFbeta plots
 dfbetaPlots(fit0)
 ```
 
@@ -129,7 +130,7 @@ A data point is suspicious if the DFbeta is greater that 1. There are no DFbetas
 ##### DFfits plot
 The following is a plot of DFfits. DFfits measures how the regression function changes when an observation is deleted. 
 ```{r}
-# DFfits
+# DFfits plot
 plot(dffits(fit0), main = "DFfits Plot")
 ```
 

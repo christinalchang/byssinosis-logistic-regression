@@ -342,8 +342,9 @@ lrtest(fitf,fit0)
 # Pearson's residuals
 res = residuals(fit0, &quot;pearson&quot;)
 hist(res, main = &quot;Plot of Pearson's Residuals&quot;, xlab = &quot;Residual&quot;)
+# DFbeta plots
 dfbetaPlots(fit0)
-# DFfits
+# DFfits plot
 plot(dffits(fit0), main = &quot;DFfits Plot&quot;)
 df[which(abs(dffits(fit0)) &gt; 1),]</code></pre>
 </div>
