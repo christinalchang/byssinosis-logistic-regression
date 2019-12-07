@@ -9,44 +9,105 @@ output: html_document
 knitr::opts_chunk$set(echo = FALSE, include = TRUE)
 ```
 
-```{r}
+```{r, include = FALSE}
 # Import libraries.
-
+library(bestglm)
+library(lmtest)
+library(car)
 
 # Read the data.
 df = read.csv("byssinosis.csv")
 ```
 
-
 This project will investigate the relationship between the Byssinosis disease and smoking status, sex, race, length of employment, smoking, and dustiness of the workplace.
 
-
-#### Model fitting
+#### Logistic Regression
 ```{r}
+# Model fitting
 model = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ ., 
             family = binomial(), data = df)
 summary(model)
 ```
-##### Interpreting logistic regression results
-From the results of the model, sex and race are not statistically significant. As for the statistically significant variables, Workspace has the smallest p-value, therefore, there is a strong association between the type of work place and the disease. Since the coefficient for Workspace is negative, this means that an environment that is less dusty decreases the odds of having the disease, given that all other variables are held constant.
 
-```{r}
+From the results of the logistic regression model with no interactions, sex and race are not statistically significant. As for the statistically significant variables, Workspace has the smallest p-value, therefore, there is a strong association between the type of work place and the disease. Since the coefficient for Workspace is negative, this means that a less dusty environment decreases the odds of having the disease, given that all other variables are held constant. More specifically, a one unit increase in the Workspace variable reduces the log odds by $-1.376$, or reduces the odds by $0.253$.
+
+```{r, include = FALSE}
 # Consider interaction terms.
 model = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ (.)^2, 
             family = binomial(), data = df)
 summary(model)
 ```
 
+Next, I introduced interactions into the model. I fitted the logistic regression model with all possible interactions. The interaction term between male and workspace had the smallest p-value of $0.0087$ and the coefficient was $-0.907$.
 
-#### Perform stepwise variable selection
+#### Model Selection
+##### Perform stepwise variable selection
+To perform model selection, I examined the results from forward subset, backward subset, and bidirectional stepwise regression with AIC.
+
 ```{r}
+# Model selection 
 fullmodel = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ ., 
             family = binomial(), data = df)
 nullmodel = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ 1, 
             family = binomial(), data = df)
 ```
 
+```{r, include = FALSE}
+# Forward AIC
+forwardAIC = step(nullmodel,
+                  scope = list(lower = nullmodel,
+                               upper = fullmodel),
+                  direction = "forward")
+# Backward AIC
+backwardAIC = step(fullmodel,
+                  scope = list(lower = nullmodel,
+                               upper = fullmodel),
+                  direction = "backward")
 
+# Bidirectional AIC
+bidirectAIC = step(fullmodel,
+                  scope = list(lower = nullmodel,
+                               upper = fullmodel),
+                  direction = "both")
+```
+
+```{r}
+forwardAIC
+```
+
+These three methods of model selection using AIC yielded ths same model. The best model is:
+$$
+log \left( \frac{\pi}{1-\pi}\right) =
+-1.1858 - 1.4663 x_{\text{Workspace}} +  
+0.6670 x_{\text{SmokingYes}} +
+0.6699 x_{\text{Employment>=20}} +
+0.5328 x_{\text{Employment10-19}}
+$$
+
+##### LR test for interactions
+```{r}
+# LR test for interactions
+fitf = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ (.)^2, 
+            family = binomial(), data = df)
+fit0 = glm(formula = cbind(Byssinosis,Non.Byssinosis) ~ ., 
+            family = binomial(), data = df)
+
+lrtest(fitf,fit0)
+```
+I used the likelihood ratio test to test for interactions between all variables. I compared the model with all interactions to the model with only main effects. So the null hypothesis is that all the coefficients of the interaction terms equal zero. The alternative hypothesis is that at least one coefficient of the interaction terms is not zero.
+
+The LR test statistic is $28.237$ and the p-value is $0.0132$. Hence, there is enough statistical evidence to accept the null hypothesis when $\alpha = 0.01$. This means that we should drop the interaction terms from the model.
+
+#### Model Diagnostics
+##### Pearson's residuals plot
+Below is a histogram of Pearson's residuals. All of the residuals are within $-3$ and $3$.
+```{r}
+# Pearson's residuals
+res = residuals(fit0, "pearson")
+hist(res, main = "Plot of Pearson's Residuals", xlab = "Residual")
+```
+
+##### DFbeta plot
 
 #### Appendix
 ```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE,include =TRUE}
