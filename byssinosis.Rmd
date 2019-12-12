@@ -3,8 +3,8 @@ title: "Modeling Byssinosis Data"
 author: "Christina Chang"
 date: "12/5/2019"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
