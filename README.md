@@ -1,5 +1,7 @@
 # Multivariate Modeling of Byssinosis Data in R
 
+See the project report [here](https://github.com/christinalchang/byssinosis-logistic-regression/blob/master/byssinosis.pdf).
+
 The dataset contains the number of workers in a survey of the US cotton industry suffering and not suffering 
 from the lung disease Byssinosis, together with the values of five cross-classifying categorical explanatory variables: 
 the race, sex and smoking habit of the worker, the length of employment in three categories, and the dustiness of the 
